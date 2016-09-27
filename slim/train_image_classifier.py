@@ -519,6 +519,10 @@ def main(_):
       optimizer = _configure_optimizer(learning_rate)
       summaries.add(tf.scalar_summary('learning_rate', learning_rate,
                                       name='learning_rate'))
+      epoch = global_step / dataset.num_samples 
+      summaries.add(tf.scalar_summary('epoch', epoch,
+                                      name='epoch'))
+
 
     if FLAGS.sync_replicas:
       # If sync_replicas is enabled, the averaging will be done in the chief
