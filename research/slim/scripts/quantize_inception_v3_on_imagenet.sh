@@ -15,9 +15,11 @@
 # ==============================================================================
 #
 # This script performs the following operations:
-# 1. Downloads the Flowers dataset
-# 2. Fine-tunes an InceptionV3 model on the Flowers training set.
-# 3. Evaluates the model on the Flowers validation set.
+# 1. Fine-tunes a InceptionV3 model on the ImageNet training set using FakeQuant ops for 8b quantization.
+# 2. Evaluates the model on the ImageNet validation set.
+# 3. Exports an inference graph of the model.
+# 4. Freezes the graph.
+# 5. Converts the frozen graph to a quantized TF-Lite model using TOCO.
 #
 # Usage:
 # cd slim
