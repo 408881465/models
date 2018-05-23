@@ -266,7 +266,7 @@ def _configure_learning_rate(num_samples_per_epoch, global_step):
 def _get_quant_delay():
   if FLAGS.checkpoint_path:
     # We can start quantizing immediately if we are finetuning.
-    return 0
+    return 500#0
   else:
     # We need to wait for the model to train a bit before we quantize if we are
     # training from scratch.

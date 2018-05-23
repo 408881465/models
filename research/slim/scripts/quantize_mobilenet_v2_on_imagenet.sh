@@ -25,7 +25,7 @@
 set -e
 
 # Which model.
-NETWORK_NAME=inception_v3
+NETWORK_NAME=mobilenet_v2
 
 # Which dataset (i.e. imagenet or flowers).
 DATASET_NAME=imagenet
@@ -34,7 +34,7 @@ DATASET_NAME=imagenet
 PRETRAINED_CHECKPOINT_DIR=/tmp/checkpoints
 
 # Where the training (fine-tuned) checkpoint and logs will be saved to.
-TRAIN_DIR=/tmp/${DATASET_NAME}-models/${NETWORK_NAME}
+TRAIN_DIR=/tmp/${DATASET_NAME}-models/${NETWORK_NAME}_2
 #rm -Rf ${TRAIN_DIR}
 
 # Where the dataset is saved to.
@@ -47,43 +47,43 @@ TENSORFLOW_DIR=/tmp/tensorflow
 if [ ! -d "$PRETRAINED_CHECKPOINT_DIR" ]; then
   mkdir ${PRETRAINED_CHECKPOINT_DIR}
 fi
-if [ ! -f ${PRETRAINED_CHECKPOINT_DIR}/inception_v3.ckpt ]; then
-  wget http://download.tensorflow.org/models/inception_v3_2016_08_28.tar.gz
-  tar -xvf inception_v3_2016_08_28.tar.gz
-  mv inception_v3.ckpt ${PRETRAINED_CHECKPOINT_DIR}/inception_v3.ckpt
-  rm inception_v3_2016_08_28.tar.gz
-fi
+#if [ ! -f ${PRETRAINED_CHECKPOINT_DIR}/inception_v3.ckpt ]; then
+#  wget http://download.tensorflow.org/models/inception_v3_2016_08_28.tar.gz
+#  tar -xvf inception_v3_2016_08_28.tar.gz
+#  mv inception_v3.ckpt ${PRETRAINED_CHECKPOINT_DIR}/inception_v3.ckpt
+#  rm inception_v3_2016_08_28.tar.gz
+#fi
 
-## Fine-tune 100 steps to learn the data ranges.
-#python train_image_classifier.py \
-#  --train_dir=${TRAIN_DIR} \
-#  --dataset_name=${DATASET_NAME} \
-#  --dataset_split_name=train \
-#  --dataset_dir=${DATASET_DIR} \
-#  --checkpoint_path=${PRETRAINED_CHECKPOINT_DIR}/${NETWORK_NAME}.ckpt \
-#  --ignore_missing_vars \
-#  --model_name=${NETWORK_NAME} \
-#  --max_number_of_steps=100 \
-#  --batch_size=64 \
-#  --learning_rate=0.00001 \
-#  --learning_rate_decay_type=fixed \
-#  --save_interval_secs=60 \
-#  --save_summaries_secs=60 \
-#  --log_every_n_steps=100 \
-#  --optimizer=rmsprop \
-#  --weight_decay=0.00004 \
-#  --quantize
-#
-## Run evaluation.
-#python eval_image_classifier.py \
-#  --checkpoint_path=${TRAIN_DIR} \
-#  --eval_dir=${TRAIN_DIR} \
-#  --dataset_name=${DATASET_NAME} \
-#  --dataset_split_name=validation \
-#  --dataset_dir=${DATASET_DIR} \
-#  --model_name=${NETWORK_NAME} \
-#  --quantize
-#
+# Fine-tune 100 steps to learn the data ranges.
+python train_image_classifier.py \
+  --train_dir=${TRAIN_DIR} \
+  --dataset_name=${DATASET_NAME} \
+  --dataset_split_name=train \
+  --dataset_dir=${DATASET_DIR} \
+  --checkpoint_path=${PRETRAINED_CHECKPOINT_DIR}/${NETWORK_NAME}_1.0_224.ckpt \
+  --ignore_missing_vars \
+  --model_name=${NETWORK_NAME} \
+  --max_number_of_steps=16000 \
+  --batch_size=96 \
+  --learning_rate=0.0001 \
+  --num_epochs_per_decay=0.1 \
+  --save_interval_secs=60 \
+  --save_summaries_secs=60 \
+  --log_every_n_steps=1 \
+  --optimizer=rmsprop \
+  --weight_decay=0.00004 \
+  --quantize
+
+# Run evaluation.
+python eval_image_classifier.py \
+  --checkpoint_path=${TRAIN_DIR} \
+  --eval_dir=${TRAIN_DIR} \
+  --dataset_name=${DATASET_NAME} \
+  --dataset_split_name=validation \
+  --dataset_dir=${DATASET_DIR} \
+  --model_name=${NETWORK_NAME} \
+  --quantize
+
 ## Export an inference graph.
 #python export_inference_graph.py \
 #  --alsologtostderr \
@@ -143,8 +143,8 @@ fi
 #  There are two issues:
 #  1) This ResNet does not have a background class so reported classes need to be shifted up by one index.
 #  2) This ResNet expects VGG-preprocessing so you should do mean channel subtraction (see "preprocessing/vgg_preprocessing.py"). 
-(cd ${TENSORFLOW_DIR}; bazel run --config=opt //tensorflow/contrib/lite/examples/label_image:label_image -- \
-  --tflite_model=${TRAIN_DIR}/${NETWORK_NAME}.quantized.tflite \
-  --image=${TENSORFLOW_DIR}/tensorflow/contrib/lite/examples/label_image/testdata/grace_hopper.bmp \
-  --labels=${DATASET_DIR}/labels.txt \
-)
+#(cd ${TENSORFLOW_DIR}; bazel run --config=opt //tensorflow/contrib/lite/examples/label_image:label_image -- \
+#  --tflite_model=${TRAIN_DIR}/${NETWORK_NAME}.quantized.tflite \
+#  --image=${TENSORFLOW_DIR}/tensorflow/contrib/lite/examples/label_image/testdata/grace_hopper.bmp \
+#  --labels=${DATASET_DIR}/labels.txt \
+#)
